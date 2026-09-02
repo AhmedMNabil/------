@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F7F8F6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0C1211" media="(prefers-color-scheme: dark)" />
+    <title>التعليم هو الحل</title>
+    <meta name="description" content="مساعد ذكي مبني على محتوى كورس التعليم هو الحل — اسأل، اتعلم، وارجع للفيديو الأصلي." />
+    <meta name="application-name" content="التعليم هو الحل" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preload" as="image" href="/logo-192.png" />
+
+    <!-- Paint the correct theme before first render so there is no white flash. -->
+    <script>
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem('settings') || '{}');
+          var theme = s.theme || 'system';
+          var dark =
+            theme === 'dark' ||
+            (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          root.classList.toggle('dark', dark);
+          var lang = s.language || 'ar';
+          root.lang = lang;
+          root.dir = lang === 'ar' ? 'rtl' : 'ltr';
+          root.classList.add('font-size-' + (s.fontSize || 'base'));
+          root.setAttribute('data-radius', s.radius || 'lg');
+          root.setAttribute('data-density', s.density || 'comfortable');
+          root.setAttribute('data-ambient', s.ambient === false ? 'off' : 'on');
+
+          function norm(v, fb) {
+            var hex = String(v || fb).replace('#', '');
+            if (/^[0-9a-fA-F]{3}$/.test(hex)) hex = hex.split('').map(function (c) { return c + c; }).join('');
+            if (!/^[0-9a-fA-F]{6}$/.test(hex)) hex = fb.replace('#', '');
+            return hex;
+          }
+          function rgb(hex) {
+            return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+          }
+          function lin(c) { c = c / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+          function lum(c) { return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]); }
+          function mix(a, b, t) {
+            return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
+          }
+          function tok(c) { return c[0] + ' ' + c[1] + ' ' + c[2]; }
+          function set(name, c) { root.style.setProperty(name, tok(c)); }
+
+          var navH = norm(s.sidebarColor, '#0C1211');
+          var nav = rgb(navH);
+          var nLight = lum(nav) > 0.45;
+          var nInk = nLight ? [17, 24, 22] : [241, 245, 243];
+          set('--c-nav', nav);
+          root.style.setProperty('--c-nav-ink', nLight ? '17 24 22' : '241 245 243');
+          root.style.setProperty('--c-nav-muted', nLight ? '88 98 95' : '156 168 164');
+          root.style.setProperty('--c-nav-faint', nLight ? '132 142 138' : '112 124 120');
+          set('--c-nav-line', mix(nav, nInk, nLight ? 0.14 : 0.18));
+          root.setAttribute('data-sidebar', nLight ? 'light' : 'dark');
+
+          var acc = rgb(norm(s.accentColor, '#0D7A6E'));
+          var aLum = lum(acc);
+          if (dark && aLum < 0.22) acc = mix(acc, [255, 255, 255], 0.32);
+          if (!dark && aLum > 0.72) acc = mix(acc, [0, 0, 0], 0.22);
+          set('--c-brand', acc);
+          set('--c-brand-ink', lum(acc) > 0.55 ? [8, 24, 22] : [255, 255, 255]);
+          set('--c-accent', mix(acc, [201, 148, 46], 0.45));
+          root.style.setProperty('--shadow-brand', '0 8px 24px rgb(' + tok(acc) + ' / 0.28)');
+
+          if (s.canvasColor) {
+            var cv = rgb(norm(s.canvasColor, '#F7F8F6'));
+            var cLight = lum(cv) > 0.45;
+            var cInk = cLight ? [17, 24, 22] : [236, 240, 238];
+            var white = [255, 255, 255];
+            var black = [8, 10, 10];
+            set('--c-canvas', cv);
+            set('--c-surface', mix(cv, cLight ? black : white, cLight ? 0.045 : 0.07));
+            set('--c-elevated', mix(cv, white, cLight ? 0.78 : 0.09));
+            set('--c-line', mix(cv, cInk, cLight ? 0.12 : 0.18));
+            set('--c-ink', cInk);
+            set('--c-muted', mix(cInk, cv, 0.42));
+            set('--c-faint', mix(cInk, cv, 0.62));
+            if (!s.bubbleColor) {
+              var autoB = mix(cv, cInk, cLight ? 0.09 : 0.14);
+              set('--c-bubble', autoB);
+              set('--c-bubble-ink', lum(autoB) > 0.45 ? [17, 24, 22] : [241, 245, 243]);
+            }
+          }
+          if (s.bubbleColor) {
+            var bb = rgb(norm(s.bubbleColor, '#E4EAE7'));
+            set('--c-bubble', bb);
+            set('--c-bubble-ink', lum(bb) > 0.45 ? [17, 24, 22] : [241, 245, 243]);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Cairo', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+            },
+            colors: {
+              canvas: 'rgb(var(--c-canvas) / <alpha-value>)',
+              surface: 'rgb(var(--c-surface) / <alpha-value>)',
+              elevated: 'rgb(var(--c-elevated) / <alpha-value>)',
+              line: 'rgb(var(--c-line) / <alpha-value>)',
+              ink: 'rgb(var(--c-ink) / <alpha-value>)',
+              muted: 'rgb(var(--c-muted) / <alpha-value>)',
+              faint: 'rgb(var(--c-faint) / <alpha-value>)',
+              bubble: 'rgb(var(--c-bubble) / <alpha-value>)',
+              'bubble-ink': 'rgb(var(--c-bubble-ink) / <alpha-value>)',
+              brand: 'rgb(var(--c-brand) / <alpha-value>)',
+              'brand-ink': 'rgb(var(--c-brand-ink) / <alpha-value>)',
+              accent: 'rgb(var(--c-accent) / <alpha-value>)',
+              danger: 'rgb(var(--c-danger) / <alpha-value>)',
+              nav: 'rgb(var(--c-nav) / <alpha-value>)',
+              'nav-ink': 'rgb(var(--c-nav-ink) / <alpha-value>)',
+              'nav-muted': 'rgb(var(--c-nav-muted) / <alpha-value>)',
+              'nav-faint': 'rgb(var(--c-nav-faint) / <alpha-value>)',
+              'nav-line': 'rgb(var(--c-nav-line) / <alpha-value>)',
+            },
+            boxShadow: {
+              composer: '0 2px 8px rgb(15 24 22 / 0.04), 0 18px 40px rgb(15 24 22 / 0.07)',
+              pop: '0 18px 50px rgb(12 18 17 / 0.22)',
+              brand: 'var(--shadow-brand)',
+              lift: '0 1px 2px rgb(15 24 22 / 0.04), 0 12px 28px rgb(15 24 22 / 0.06)',
+            },
+            keyframes: {
+              'fade-up': {
+                '0%': { opacity: '0', transform: 'translateY(8px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              breathe: {
+                '0%, 100%': { opacity: '0.35', transform: 'scale(0.85)' },
+                '50%': { opacity: '1', transform: 'scale(1)' },
+              },
+              'logo-pulse': {
+                '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 8px 24px rgb(var(--c-brand) / 0.25))' },
+                '50%': { transform: 'scale(1.045)', filter: 'drop-shadow(0 12px 32px rgb(var(--c-brand) / 0.4))' },
+              },
+              'scale-in': {
+                '0%': { opacity: '0', transform: 'scale(0.98) translateY(6px)' },
+                '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+              },
+            },
+            animation: {
+              'fade-up': 'fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both',
+              'fade-in': 'fade-in 0.25s ease-out both',
+              'scale-in': 'scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both',
+              breathe: 'breathe 1.2s ease-in-out infinite',
+              'logo-pulse': 'logo-pulse 2.4s ease-in-out infinite',
+            },
+          },
+        },
+      };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+    />
+
+    <style>
+      /* ---- Design tokens -------------------------------------------------- */
+      :root {
+        --c-canvas: 247 248 246;
+        --c-surface: 238 240 237;
+        --c-elevated: 255 255 255;
+        --c-line: 220 224 218;
+        --c-ink: 17 24 22;
+        --c-muted: 88 98 95;
+        --c-faint: 132 142 138;
+        --c-bubble: 228 234 231;
+        --c-bubble-ink: 17 24 22;
+        --c-brand: 13 122 110;
+        --c-brand-ink: 255 255 255;
+        --c-accent: 201 148 46;
+        --c-danger: 220 38 38;
+        --c-nav: 12 18 17;
+        --c-nav-ink: 241 245 243;
+        --c-nav-muted: 156 168 164;
+        --c-nav-faint: 112 124 120;
+        --c-nav-line: 38 48 46;
+        --shadow-brand: 0 8px 24px rgb(13 122 110 / 0.28);
+        --r-sm: 0.375rem;
+        --r-md: 0.5rem;
+        --r-lg: 0.75rem;
+        --r-xl: 1rem;
+        --r-2xl: 1.25rem;
+        --r-composer: 1.6rem;
+        --header-h: 3.5rem;
+        --side-w: 260px;
+        --msg-y: 0.625rem;
+      }
+      .dark {
+        --c-canvas: 16 19 19;
+        --c-surface: 11 14 14;
+        --c-elevated: 28 33 32;
+        --c-line: 46 54 52;
+        --c-ink: 236 240 238;
+        --c-muted: 158 168 165;
+        --c-faint: 118 128 124;
+        --c-bubble: 40 48 46;
+        --c-bubble-ink: 236 240 238;
+        --c-brand: 45 212 191;
+        --c-brand-ink: 8 24 22;
+        --c-accent: 232 179 73;
+        --c-danger: 248 113 113;
+        --c-nav: 8 11 11;
+        --c-nav-ink: 236 240 238;
+        --c-nav-muted: 148 160 156;
+        --c-nav-faint: 104 116 112;
+        --c-nav-line: 34 42 41;
+      }
+
+      html[data-radius='sm'] {
+        --r-sm: 0.25rem; --r-md: 0.375rem; --r-lg: 0.5rem;
+        --r-xl: 0.625rem; --r-2xl: 0.75rem; --r-composer: 0.85rem;
+      }
+      html[data-radius='md'] {
+        --r-sm: 0.375rem; --r-md: 0.5rem; --r-lg: 0.625rem;
+        --r-xl: 0.85rem; --r-2xl: 1rem; --r-composer: 1.15rem;
+      }
+      html[data-radius='xl'] {
+        --r-sm: 0.5rem; --r-md: 0.75rem; --r-lg: 1rem;
+        --r-xl: 1.35rem; --r-2xl: 1.75rem; --r-composer: 1.85rem;
+      }
+      html[data-density='compact'] {
+        --header-h: 3rem; --side-w: 244px; --msg-y: 0.4rem;
+      }
+      html[data-density='spacious'] {
+        --header-h: 4rem; --side-w: 280px; --msg-y: 0.95rem;
+      }
+
+      .rounded-md { border-radius: var(--r-sm) !important; }
+      .rounded-lg { border-radius: var(--r-md) !important; }
+      .rounded-xl { border-radius: var(--r-lg) !important; }
+      .rounded-2xl { border-radius: var(--r-xl) !important; }
+      .rounded-3xl { border-radius: var(--r-2xl) !important; }
+      .rounded-full { border-radius: 9999px !important; }
+
+      html { color-scheme: light; }
+      html.dark { color-scheme: dark; }
+
+      body {
+        font-family: 'Cairo', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+        background-color: rgb(var(--c-canvas));
+        color: rgb(var(--c-ink));
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      body::before {
+        content: '';
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        opacity: 0.022;
+        mix-blend-mode: overlay;
+        z-index: 40;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+      }
+
+      ::selection {
+        background: rgb(var(--c-brand) / 0.22);
+        color: rgb(var(--c-ink));
+      }
+
+      .glass-header {
+        background: rgb(var(--c-canvas) / 0.72);
+        backdrop-filter: blur(22px) saturate(1.4);
+        -webkit-backdrop-filter: blur(22px) saturate(1.4);
+      }
+
+      .auth-mesh {
+        background:
+          radial-gradient(ellipse 90% 70% at 12% 8%, rgb(var(--c-brand) / 0.46), transparent 58%),
+          radial-gradient(ellipse 70% 55% at 92% 92%, rgb(var(--c-accent) / 0.18), transparent 52%),
+          rgb(var(--c-nav));
+      }
+
+      .app-ambient {
+        position: relative;
+        isolation: isolate;
+      }
+      .app-ambient::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(ellipse 70% 42% at 50% -8%, rgb(var(--c-brand) / 0.16), transparent 58%),
+          radial-gradient(ellipse 45% 32% at 100% 100%, rgb(var(--c-accent) / 0.08), transparent 52%);
+      }
+      html[data-ambient='off'] .app-ambient::before {
+        display: none;
+      }
+      .app-ambient > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Latin text inside an Arabic UI still reads better in a Latin face. */
+      .font-latin {
+        font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      .font-size-sm { font-size: 14px; }
+      .font-size-base { font-size: 16px; }
+      .font-size-lg { font-size: 18px; }
+
+      /* ---- Scrollbars ----------------------------------------------------- */
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb {
+        background: rgb(var(--c-ink) / 0.16);
+        border-radius: 9999px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgb(var(--c-ink) / 0.28);
+        background-clip: content-box;
+      }
+      .scrollbar-none::-webkit-scrollbar { display: none; }
+      .scrollbar-none { scrollbar-width: none; }
+
+      /* ---- Markdown ------------------------------------------------------- */
+      /* The typography plugin paints from its own variables, which default to
+         the gray scale and ignore our tokens. Rebind them so markdown follows
+         the theme in both light and dark. */
+      .prose {
+        --tw-prose-body: rgb(var(--c-ink));
+        --tw-prose-headings: rgb(var(--c-ink));
+        --tw-prose-lead: rgb(var(--c-muted));
+        --tw-prose-links: rgb(var(--c-brand));
+        --tw-prose-bold: rgb(var(--c-ink));
+        --tw-prose-counters: rgb(var(--c-muted));
+        --tw-prose-bullets: rgb(var(--c-brand));
+        --tw-prose-hr: rgb(var(--c-line));
+        --tw-prose-quotes: rgb(var(--c-muted));
+        --tw-prose-quote-borders: rgb(var(--c-brand));
+        --tw-prose-captions: rgb(var(--c-muted));
+        --tw-prose-code: rgb(var(--c-ink));
+        --tw-prose-pre-code: rgb(229 231 235);
+        --tw-prose-pre-bg: transparent;
+        --tw-prose-th-borders: rgb(var(--c-line));
+        --tw-prose-td-borders: rgb(var(--c-line));
+      }
+
+      .prose :where(pre) {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+      }
+      .prose :where(code):not(:where(pre code)) {
+        background: rgb(var(--c-ink) / 0.06);
+        border: 1px solid rgb(var(--c-line));
+        border-radius: 0.375rem;
+        padding: 0.1em 0.38em;
+        font-weight: 500;
+        font-size: 0.875em;
+      }
+      .prose :where(code):not(:where(pre code))::before,
+      .prose :where(code):not(:where(pre code))::after {
+        content: '';
+      }
+      .prose :where(table) {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .prose :where(hr) { border-color: rgb(var(--c-line)); }
+      .prose :where(blockquote) {
+        border-inline-start-width: 3px;
+        border-inline-end-width: 0;
+        border-color: rgb(var(--c-brand));
+        font-style: normal;
+        color: rgb(var(--c-muted));
+      }
+
+      /* RTL list indentation: the typography plugin only pads the left. */
+      [dir='rtl'] .prose :where(ul, ol) {
+        padding-right: 1.5em;
+        padding-left: 0;
+      }
+      [dir='rtl'] .prose :where(blockquote) {
+        padding-right: 1em;
+        padding-left: 0;
+      }
+
+      /* The blinking caret that trails streaming text. */
+      .is-streaming > :last-child::after {
+        content: '';
+        display: inline-block;
+        width: 0.5em;
+        height: 1.05em;
+        margin-inline-start: 0.12em;
+        vertical-align: text-bottom;
+        border-radius: 1px;
+        background: rgb(var(--c-brand));
+        animation: caret-blink 1s steps(2, start) infinite;
+      }
+      @keyframes caret-blink {
+        to { visibility: hidden; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-markdown": "https://aistudiocdn.com/react-markdown@^9.0.1",
+          "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.0",
+          "uuid": "https://aistudiocdn.com/uuid@^10.0.0",
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1",
+          "firebase/app": "https://esm.sh/firebase@10.13.1/app",
+          "firebase/auth": "https://esm.sh/firebase@10.13.1/auth",
+          "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-canvas text-ink">
+    <div id="root" class="h-[100dvh] w-screen"></div>
+    <script type="module" src="/index.tsx"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  </body>
+</html>
